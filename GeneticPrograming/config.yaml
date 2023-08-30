@@ -1,0 +1,28 @@
+# config.yaml
+
+data_file: data/5m_data.csv
+functions_two:
+  - !!python/name: __main__.multi
+  - !!python/name: __main__.subtract
+  - !!python/name: __main__.add
+functions_last_set:
+  - !!python/name: __main__.sigmoid
+  - !!python/name: __main__.absolute
+  - !!python/name: __main__.sine
+  - !!python/name: __main__.cos
+  - !!python/name: __main__.tan
+  - !!python/name: __main__.sqrt
+  - !!python/name: __main__.logarithm
+golden_nums:
+  - 2
+  - 3
+  - 5
+  - 8
+  - 13
+  - 21
+  - 34
+  - 55
+  - 89
+  - 144
+population_size: 50
+num_generations: 100

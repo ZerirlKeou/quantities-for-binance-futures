@@ -22,56 +22,53 @@ class GridTradeBack(object):
     def _profit(self, df):
         buyStack = self.gridStack.buy_stack
         sellStack = self.gridStack.sell_stack
+        right_now_blank_price = self.gridStack.middle_price
         heldbuyStack = []
         heldsellStack = []
         df['Profit'] = 0.0
+        print(buyStack)
+        print(sellStack)
+        direction = "none"
         for i in range(len(df)):
-            print(buyStack[-1:][0])
-            if df.loc[i, "Close"] <= buyStack[-1:][0]:
-                """push to held stack and pop pre stack"""
-                result = [num for num in buyStack if num > df.loc[i, "Close"]]
-                print(result)
-                heldbuyStack.append(result)
-                print(heldsellStack)
-                # buyStack = buyStack[:-len(result)]
-                df.loc[i, 'Profit'] = -self.money * self.premium * 0.01 * self.lever
-                self.money += df.loc[i, 'Profit']
+            print("网格做多开仓价格", buyStack[-1:][0])
+            print("网格做空开仓价格", sellStack[0])
+            print("当前收盘价", df.loc[i, "Close"])
+            # 做多
+            if direction == "none":
+                if df.loc[i, "Close"] <= buyStack[-1:][0]:
+                    """push to held stack and pop pre stack"""
+                    result = [num for num in buyStack if num > df.loc[i, "Close"]]
+                    print("做多的结果", result)
+                    for res in result:
+                        heldbuyStack.append([res, right_now_blank_price])
+                    print("当前做多持仓", heldbuyStack)
+                    # 网格后退
+                    buyStack = buyStack[:-len(result)]
+                    # sellStack.insert(0, right_now_blank_price)
+                    direction = "more"
+                    print("当前做多等待配对", right_now_blank_price)
+                    right_now_blank_price = buyStack[-1:][0]
+                # 做空
+                elif df.loc[i, "Close"] >= sellStack[0]:
+                    """push to held stack and pop pre stack"""
+                    result = [num for num in sellStack if num < df.loc[i, "Close"]]
+                    print("做空的结果", result)
+                    for res in result:
+                        heldsellStack.append(res)
+                    print("当前做空持仓", heldsellStack)
+                    sellStack = sellStack[:-1]
+                    buyStack.append(right_now_blank_price)
+                    right_now_blank_price = sellStack[-1:][0]
+                    # df.loc[i, 'Profit'] = -self.money * self.premium * 0.01 * self.lever
+                    # self.money += df.loc[i, 'Profit']
+            elif direction == "more":
+                if df.loc[i, "Close"] > heldbuyStack[0][1]:
+                    df.loc[i, 'Profit'] = heldbuyStack[0][1] - heldbuyStack[0][0]
+                else:
+                    pass
             else:
-                result = [num for num in buyStack if num > df.loc[i, "Close"]]
-            #     elif df.loc[i, "Close"] >= sellStack[0]:
-            #         bought = True
-            #         situation = 'less'
-            #         df.loc[i, 'Profit'] = -self.money * self.premium * 0.01 * self.lever
-            #         self.money += df.loc[i, 'Profit']
-            # else:
-            #     if situation == 'more':
-            #         if df.loc[i, "Close"] == -1:
-            #             situation = "less"
-            #             df.loc[i, 'Profit'] += -self.money * self.premium * 0.01 * self.lever + self.money * df.loc[
-            #                 i, 'change'] * self.lever
-            #             self.money += df.loc[i, 'Profit']
-            #         else:
-            #             df.loc[i, 'Profit'] += self.money * df.loc[i, 'change'] * self.lever
-            #             if df.loc[i, 'Profit'] <= -self.money * stop_loss_percentage:
-            #                 df.loc[i, 'Profit'] = -self.money * stop_loss_percentage  # 卖出，设置亏损10.2%
-            #                 self.money += df.loc[i, 'Profit']
-            #                 bought = False
-            #             else:
-            #                 self.money += df.loc[i, 'Profit']
-            #     elif situation == 'less':
-            #         if df.loc[i, "Close"] == 1:
-            #             situation = "more"
-            #             df.loc[i, 'Profit'] += -self.money * self.premium * 0.01 * self.lever - self.money * df.loc[
-            #                 i, 'change'] * self.lever
-            #             self.money += df.loc[i, 'Profit']
-            #         else:
-            #             df.loc[i, 'Profit'] += -self.money * df.loc[i, 'change'] * self.lever
-            #             if df.loc[i, 'Profit'] <= -self.money * stop_loss_percentage:
-            #                 df.loc[i, 'Profit'] = -self.money * stop_loss_percentage  # 卖出，设置亏损10.2%
-            #                 self.money += df.loc[i, 'Profit']
-            #                 bought = False
-            #             else:
-            #                 self.money += df.loc[i, 'Profit']
+                if df.loc[i, "Close"] < heldsellStack[0][1]:
+                    df.loc[i, 'Profit'] = heldsellStack[0][1] - heldsellStack[0][0]
 
     def _draw_html(self):
         pass

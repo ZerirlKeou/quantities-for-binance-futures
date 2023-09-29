@@ -17,8 +17,14 @@ class InitGrid(object):
         for i in range(self.size):
             if low_price < close < high_price:
                 if self.grid[i] > close:
-                    self.buy_stack = self.grid[:i]
-                    self.sell_stack = self.grid[i:]
+                    if self.grid[i]-close<close-self.grid[i-1]:
+                        self.buy_stack = self.grid[:i]
+                        self.sell_stack = self.grid[i+1:]
+                        self.middle_price = self.grid[i]
+                    else:
+                        self.buy_stack = self.grid[:i-1]
+                        self.sell_stack = self.grid[i:]
+                        self.middle_price = self.grid[i-1]
                     break
             else:
                 raise ValueError("输入目前价格不在网格区间内，请检查输入!")
@@ -26,7 +32,10 @@ class InitGrid(object):
 
 def test_class():
     grid = InitGrid(close=241.5, low_price=232.45, high_price=257.56, size=21)
+    print(grid.buy_stack)
+    print(grid.sell_stack)
     print(grid.buy_stack[-1:])
+    print(grid.middle_price)
     original_list = [2, 4, 5, 6]
     number_to_compare = 3
 

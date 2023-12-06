@@ -105,6 +105,8 @@ class MplVisualIf(MplTypesDraw):
     def fig_output(self, **kwargs):
         if 'path' in kwargs.keys():
             self.df = pd.read_csv(kwargs.get('path'), parse_dates=True, index_col='Open time')
+        elif 'df' in kwargs.keys():
+            self.df = kwargs.get('df')
         else:
             print(u"There is no path for dataframe to draw")
         self.draw_kind = kwargs.get('draw_kind', [])

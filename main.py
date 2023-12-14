@@ -110,10 +110,10 @@ if __name__ == '__main__':
     # checker = MarketDataChecker(client)
     # checker.completion_history_data()
     # 计算指标
-    # calculate_indicators.upgrade_data()
+    calculate_indicators.insert_data()
     # 回测系统
     # backtest_system = tb.TradeBackSystemV5(money=41.24, premium=0.02, lever=8)
-    backtest_system = tb.GridTradeMulti(money=41.24, premium=0.02, lever=8)
-    backtest_system.run_backtest()
+    # backtest_system = tb.GridTradeMulti(money=41.24, premium=0.02, lever=8)
+    # backtest_system.run_backtest()
     # 测试账号客户端连通性
     # print(client.exchange_info())

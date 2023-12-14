@@ -63,6 +63,29 @@ class FactorCalculator:
         VAR7 = VAR7.ewm(span=3, adjust=False).mean() / 618
         df['VAR8'] = np.where(VAR7 > 500, 500, VAR7)
 
+    @ftp.route_types(u'stoch_rsi')
+    def calculate_rsi_stoch_rsi(self, df, n=14, m=3):
+        # 计算 LC
+        df['LC'] = df['Close'].shift(1)
+
+        # 计算 RSI
+        upward_changes = np.maximum(df['Close'] - df['LC'], 0)
+        downward_changes = np.abs(df['Close'] - df['LC'])
+        avg_gain = upward_changes.rolling(window=n, min_periods=1).mean()
+        avg_loss = downward_changes.rolling(window=n, min_periods=1).mean()
+        df['RSI'] = (avg_gain / avg_loss).apply(lambda x: 100 if x == float('inf') else x)
+
+        # 计算 Stochastic RSI
+        min_RSI = df['RSI'].rolling(window=n).min()
+        max_RSI = df['RSI'].rolling(window=n).max()
+        df['StochRSI'] = ((df['RSI'] - min_RSI) / (max_RSI - min_RSI) * 100).fillna(0)
+
+        # 计算 KR 和 DR
+        df['KR'] = df['StochRSI'].rolling(window=m, min_periods=1).mean()
+        df['DR'] = df['KR'].rolling(window=m, min_periods=1).mean()
+
+        return df
+
     @ftp.route_types(u'return')
     def calculate_return(self, df):
         df['Return_1'] = (df['Close'].shift(-1) - df['Close']) / df['Close']
@@ -76,7 +99,7 @@ class WriteFactorData(FactorCalculator):
     def __init__(self):
         FactorCalculator.__init__(self)
         self.df = None
-        self.pool = ['williams_r', 'macd', 'cci', 'volume', 'zjfz', 'return']
+        self.pool = ['williams_r', 'macd', 'cci', 'volume', 'zjfz', 'stoch_rsi', 'return']
 
     def calculate_factors(self, df):
         self.df = df

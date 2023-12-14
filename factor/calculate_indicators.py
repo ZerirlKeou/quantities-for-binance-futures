@@ -7,10 +7,21 @@ import time
 from memory_profiler import profile
 import json
 import sqlite3
+import numpy as np
 
-file_names = ['data\\1d_data.csv', 'data\\1h_data.csv', 'data\\15m_data.csv', 'data\\5m_data.csv', 'data\\1m_data.csv']
 app = drawMainFigure.MplVisualIf()
 
+def timeit_test(func):
+    """
+    Args: 用于计算指标计算运行时间
+        func: 测试函数
+    """
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        func(*args, **kwargs)
+        elapsed = (time.perf_counter() - start)
+        print('Time used: {}'.format(elapsed))
+    return wrapper
 
 def json_to_str():
     """
@@ -23,60 +34,50 @@ def json_to_str():
 
 
 def factor_calculate(df):
+    """
+    Args:计算所有指标，包括基本指标以及衍生指标
+    """
     bf = basic_factors.WriteFactorData()
-    derived_calculator = derived_factors.AddBuyPoint()
-
+    dbf = derived_factors.DerivedFactorData()
     df = bf.calculate_factors(df)
-    df = derived_calculator.williams_point(df)
-    df = derived_calculator.macd_back(df)
-    df = derived_calculator.williams_point1(df)
-    df = derived_calculator.basic_buy_point(df)
-
+    df = dbf.calculate_factors(df)
     return df
 
 
-def get_df(pair):
-    name = 'data\\data_base\\{}.db'.format(pair)
+def get_df(interval,pair):
+    name = 'data\\data_base\\{}\\{}.db'.format(interval,pair)
     conn = sqlite3.connect(name)
     try:
         df = pd.read_sql_query("select * from {};".format(pair), conn, dtype='float')
     except:
         print(u'{} database has not create'.format(pair))
         return None
-    print(df)
-    # layout_dict = {'df': df,
-    #                'draw_kind': ['kline'],
-    #                'title': pair}
-    # app.fig_output(**layout_dict)
-    # df = factor_calculate(df)
-    # df.to_sql(name=pair, con=conn, index=False, if_exists='replaced')
+    df = df.drop_duplicates(subset='Open time')
+    df = factor_calculate(df)
+    df.to_sql(name=pair, con=conn, index=False, if_exists='replace')
+    conn.close()
+    print(pair)
 
 
 @profile()
 def insert_data():
+    intervals = ['1m','5m','15m','1h','1d']
     pair_index = json_to_str()
-    for pair in pair_index.values():
-        get_df(pair)
-    # StartTime = time.time()
-    # bf = basic_factors.WriteFactorData()
-    # derived_calculator = derived_factors.AddBuyPoint()
-    # for file_name in file_names:
-    #     df = pd.read_csv(file_name)
-    #     df = bf.calculate_factors(df)
-    #     df = derived_calculator.williams_point(df)
-    #     df = derived_calculator.macd_back(df)
-    #     df = derived_calculator.williams_point1(df)
-    #     df = derived_calculator.basic_buy_point(df)
-    #     df.to_csv(file_name, index=False)
-    # EndTime = time.time()
-    # print(EndTime - StartTime)
+    for interval in intervals:
+        for pair in pair_index.values():
+            get_df(interval, pair)
+
+    name = 'data\\data_base\\1m\\BTCUSDT.db'
+    conn = sqlite3.connect(name)
+    df = pd.read_sql_query("select * from 'BTCUSDT';", conn, dtype='float',index_col='Open time')
+    df['Open time'] = (df.index.astype(np.int64) // 10 ** 3).astype(int)
+
 
     # 散点图绘制
-    # chart = ds.StockChart6("data\\1d_data.csv", "VAR8", "Return_1", draw_number=200)
+    # chart = ds.show_feature_img(df, "low-open", "Return_1", draw_number=200)
     # chart.show_chart()
-
     # 主图绘制
-    # layout_dict = {'path': "data\\1d_data.csv",
-    #                'draw_kind': ['kline', 'volume', 'macd'],
-    #                'title': u"BNBUSTD"}
-    # app.fig_output(**layout_dict)
+    layout_dict = {'df': df,
+                   'draw_kind': ['kline','macd','basic_Open_point', 'stoch_rsi'],
+                   'title': u"BTCUSDT"}
+    app.fig_output(**layout_dict)

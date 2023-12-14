@@ -1,10 +1,13 @@
 import finplot as fplt
 import pandas as pd
+import numpy as np
+
 
 
 def fig_config():
     fplt.legend_text_color = '#fff'
     fplt.background = '#1e1f22'
+    fplt.foreground = '#fff'
     fplt.odd_plot_background = '#1b1c1f'
     fplt.candle_bear_color = fplt.candle_bear_body_color = '#2ebc9c'
     fplt.candle_bull_color = fplt.candle_bull_body_color = '#ef5350'
@@ -49,6 +52,14 @@ class MplTypesDraw:
         df_dat.Close.ewm(span=10).mean().plot(ax=ax, legend='EMA')
         df_dat.Close.ewm(span=20).mean().plot(ax=ax, legend='EMA')
 
+    @mpl.route_types(u"line")
+    def line_plot(self, df_dat, ax):
+        fplt.plot(df_dat, ax=ax)
+
+    @mpl.route_types(u"bar")
+    def bar_plot(self, df_bat, ax):
+        fplt.volume_ocv(df_bat,ax,colorfunc=fplt.strength_colorfilter)
+
     @mpl.route_types(u"volume")
     def volume_plot(self, df_dat, ax):
         df_dat[['Open', 'Close', 'Volume']].plot(kind='volume', ax=ax)
@@ -56,7 +67,8 @@ class MplTypesDraw:
     @mpl.route_types(u"macd")
     def macd_plot(self, df_dat, ax):
         df_dat['macd_1'] = df_dat['macd'].shift(1)
-        fplt.volume_ocv(df_dat[['macd', 'macd_1', 'macd']], ax=ax, colorfunc=fplt.strength_colorfilter)
+        df_dat['macd_copy'] = df_dat['macd']
+        fplt.volume_ocv(df_dat[['macd_copy', 'macd_1', 'macd']], ax=ax, colorfunc=fplt.strength_colorfilter)
         fplt.plot(df_dat['dif'], ax=ax, legend='dif')
         fplt.plot(df_dat['dea'], ax=ax, legend='dea')
 
@@ -72,6 +84,34 @@ class MplTypesDraw:
     def zjfz_plot(self, df_dat, ax):
         fplt.plot(df_dat['VAR8'], ax=ax, legend='zjfz')
 
+    @mpl.route_types(u"basic_Open_point")
+    def basic_open_point(self, df_dat, ax):
+        fplt.plot(df_dat['basic_Open_point'], ax=ax, legend='Basic Open Point')
+
+    @mpl.route_types(u"stoch_rsi")
+    def stoch_rsi_plot(self, df_dat, ax):
+        fplt.plot(df_dat['KR'], ax=ax, legend='KR')
+        fplt.plot(df_dat['DR'], ax=ax, legend='DR')
+        # fplt.plot(df_dat['rsiBuy'], ax=ax, legend='rsiBuy')
+
+    @mpl.route_types(u"fillTrade")
+    def fillTrade_plot(self, df_dat, ax):
+        skip_days = False
+        df_dat['strategy'] = df_dat['basic_Open_point']
+        for kl_index, value in df_dat['strategy'].iteritems():
+            if (value == 1) and (skip_days == False):
+                start = df_dat.index.get_loc(kl_index)
+                skip_days = True
+            elif (value == -1) and (skip_days == True):
+                end = df_dat.index.get_loc(kl_index) + 1
+                skip_days = False
+                if df_dat['Close'][end-1] <= df_dat['Close'][start]:
+                    print('end{}'.format(df_dat['Close'][end-1]))
+                    print('start{}'.format(df_dat['Close'][start]))
+                    pass
+                    # fplt.plot(df_dat['Close'][start:end],ax=ax,color='g')
+                else:
+                    fplt.plot(df_dat['Close'][start:end],ax=ax,color='r')
 
 class MplVisualIf(MplTypesDraw):
 

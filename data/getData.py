@@ -16,4 +16,5 @@ def binance_future(pair="BNBUSDT", start_val=1683956800000, end_val=168495680000
 
 
 def test():
-    binance_future()
+    df = binance_future()
+    print(df)

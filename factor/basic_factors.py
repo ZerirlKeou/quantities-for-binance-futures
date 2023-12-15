@@ -84,6 +84,8 @@ class FactorCalculator:
         df['KR'] = df['StochRSI'].rolling(window=m, min_periods=1).mean()
         df['DR'] = df['KR'].rolling(window=m, min_periods=1).mean()
 
+        df.drop(['LC', 'RSI', 'StochRSI'],axis=1, inplace=True)
+
         return df
 
     @ftp.route_types(u'return')

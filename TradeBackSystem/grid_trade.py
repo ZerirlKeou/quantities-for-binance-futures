@@ -10,6 +10,11 @@ class GridTradeBack(object):
         self.premium = premium
         self.interval = interval
         self.df = self._read_clean_data()
+        self.direction = "none"
+        self.right_now_blank_price = self.gridStack.middle_price
+        self.buyStack = self.gridStack.buy_stack
+        self.holdBuyStack = []
+        self.holdSellStack = []
         self._profit(self.df)
 
     def _read_clean_data(self):
@@ -19,60 +24,76 @@ class GridTradeBack(object):
         self.gridStack = grid_static.InitGrid(close=df.loc[0, "Close"], low_price=222.45, high_price=350, size=100)
         return df
 
+    def _buy_grid(self, df, i):
+        self.direction = "more"
+        """push to held stack and pop pre stack"""
+        result = [num for num in self.buyStack if num > df.loc[i, "Close"]]
+        print("做多的结果", result)
+        for res in result:
+            self.holdBuyStack.append([res, self.right_now_blank_price])
+        print("当前做多持仓", self.holdBuyStack)
+        # 网格后退
+        self.right_now_blank_price = self.buyStack[-len(result):][0]
+        self.buyStack = self.buyStack[:-len(result)]
+
     def _profit(self, df):
-        buyStack = self.gridStack.buy_stack
         sellStack = self.gridStack.sell_stack
-        right_now_blank_price = self.gridStack.middle_price
-        heldbuyStack = []
-        heldsellStack = []
         df['Profit'] = 0.0
-        print(buyStack)
+        print(self.buyStack)
         print(sellStack)
-        direction = "none"
         for i in range(len(df)):
-            print("网格做多开仓价格", buyStack[-1:][0])
+            print("当前为第", i + 1, "天")
+            print("网格做多开仓价格", self.buyStack[-1:][0])
             print("网格做空开仓价格", sellStack[0])
             print("当前收盘价", df.loc[i, "Close"])
             # 做多
-            if direction == "none":
-                if df.loc[i, "Close"] <= buyStack[-1:][0]:
-                    """push to held stack and pop pre stack"""
-                    result = [num for num in buyStack if num > df.loc[i, "Close"]]
-                    print("做多的结果", result)
-                    for res in result:
-                        heldbuyStack.append([res, right_now_blank_price])
-                    print("当前做多持仓", heldbuyStack)
-                    # 网格后退
-                    buyStack = buyStack[:-len(result)]
-                    # sellStack.insert(0, right_now_blank_price)
-                    direction = "more"
-                    print("当前做多等待配对", right_now_blank_price)
-                    right_now_blank_price = buyStack[-1:][0]
+            if self.direction == "none":
+                if df.loc[i, "Close"] <= self.buyStack[-1:][0]:
+                    self._buy_grid(df=df, i=i)
                 # 做空
                 elif df.loc[i, "Close"] >= sellStack[0]:
+                    self.direction = "less"
                     """push to held stack and pop pre stack"""
                     result = [num for num in sellStack if num < df.loc[i, "Close"]]
                     print("做空的结果", result)
                     for res in result:
-                        heldsellStack.append(res)
-                    print("当前做空持仓", heldsellStack)
+                        self.holdSellStack.append(res)
+                    print("当前做空持仓", self.holdSellStack)
                     sellStack = sellStack[:-1]
-                    buyStack.append(right_now_blank_price)
-                    right_now_blank_price = sellStack[-1:][0]
-                    # df.loc[i, 'Profit'] = -self.money * self.premium * 0.01 * self.lever
-                    # self.money += df.loc[i, 'Profit']
-            elif direction == "more":
-                if df.loc[i, "Close"] > heldbuyStack[0][1]:
-                    df.loc[i, 'Profit'] = heldbuyStack[0][1] - heldbuyStack[0][0]
+                    self.buyStack.append(self.right_now_blank_price)
+                    self.right_now_blank_price = sellStack[-1:][0]
+            elif self.direction == "more":
+                if df.loc[i, "Close"] > self.holdBuyStack[-1][1]:
+                    tempStack = []
+                    for num in reversed(self.holdBuyStack):
+                        if num[1] > df.loc[i, "Close"]:
+                            break
+                        if num[1] < df.loc[i, "Close"]:
+                            df.loc[i, 'Profit'] += num[1] - num[0]
+                            tempStack.append(num)
+                            self.right_now_blank_price = num[1]
+                            self.holdBuyStack.pop(-1)
+                            print("卖出后持仓", self.holdBuyStack)
+                        else:
+                            pass
+                    if tempStack:
+                        for ts in reversed(tempStack):
+                            self.buyStack.append(ts[0])
+                            print(self.buyStack)
+                        self.right_now_blank_price = tempStack[-1][1]
+                    if not self.holdBuyStack:
+                        self.direction = "none"
+                elif df.loc[i, "Close"] < self.buyStack[-1:][0]:
+                    self._buy_grid(df=df, i=i)
+            else:
+                if df.loc[i, "Close"] < self.holdSellStack[0][1]:
+                    df.loc[i, 'Profit'] = self.holdSellStack[0][1] - self.holdSellStack[0][0]
                 else:
                     pass
-            else:
-                if df.loc[i, "Close"] < heldsellStack[0][1]:
-                    df.loc[i, 'Profit'] = heldsellStack[0][1] - heldsellStack[0][0]
 
     def _draw_html(self):
         pass
 
 
 def test_grid_trade():
-    grid = GridTradeBack(48, 0.002, "5m", 15)
+    GridTradeBack(48, 0.002, "5m", 15)

@@ -1,6 +1,5 @@
 # 策略回测，至少每25小时回测一次
 import os
-import average.average_cal
 from binance.um_futures import UMFutures
 import pandas as pd
 from factor import calculate_indicators
@@ -12,7 +11,6 @@ from machine_learning import SVM_nodel
 from machine_learning import lstm_model
 from machine_learning import arima
 from machine_learning import model_predict_write
-from average import average_cal
 import time
 import csv
 import joblib
@@ -99,8 +97,6 @@ if __name__ == '__main__':
     # 写入模型预测值
     # mp = model_predict_write.PredictionWrite(4, 'randomforest', "random_forest")
     # mp.write_csv()
-
-    # aver = average_cal.MultiAverageLine("5m")
 
     # 遗传规划
     # gp = genetic_programing.GeneticProgramming()

@@ -4,7 +4,7 @@ from binance.websocket.websocket_client import BinanceWebsocketClient
 class UMFuturesWebsocketClient(BinanceWebsocketClient):
     def __init__(
         self,
-        stream_url="wss://fstream.binance.com",
+        stream_url="wss://fstream.binance.com:9443",
         on_message=None,
         on_open=None,
         on_close=None,

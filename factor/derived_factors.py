@@ -36,6 +36,7 @@ class DerivedFactorCalculate:
             np.where(~df['deaRewrite'] & ~df['difRewrite'] & (
                     ~df['macd_condition'] & ~df['shifted_condition1'] & ~df['shifted_condition2']),
                      1, 0))
+        df.drop(['macd_condition', 'shifted_condition1', 'shifted_condition2','deaRewrite','difRewrite'], axis=1, inplace=True)
         return df
 
     @dfp.route_types(u'williams')
@@ -46,6 +47,7 @@ class DerivedFactorCalculate:
         df['williams_condition4'] = df['williams_r'] < -20
         df['williams_points'] = np.where(df['williams_condition1'] & df['williams_condition2'], 1,
                                          np.where(df['williams_condition3'] & df['williams_condition4'], -1, 0))
+        df.drop(['williams_condition1', 'williams_condition2', 'williams_condition3','williams_condition4'], axis=1, inplace=True)
         return df
 
     @dfp.route_types(u'basic_open_point')
@@ -54,6 +56,7 @@ class DerivedFactorCalculate:
                                           np.where((df['macd_back'] == -1) & (df['williams_points'] == -1), -1, 0))
         return df
 
+    @dfp.route_types(u'')
     @dfp.route_types(u'other')
     def williams_point(self, df):
         df['williams_1'] = (-df['williams_r'].shift(1) - 80) / (-df['williams_r'] - 80)
@@ -65,7 +68,7 @@ class DerivedFactorCalculate:
                                  -df['CCI'].rolling(3).max() + df['CCI'])
         df["chazhi"] = df["CCI_HHV"].shift(1) - df["CCI_HHV"]
         df["high+dif"] = df["High"] + df["dif"]
-        df['rsiBuy'] = np.where(df['KR']==0,50,np.where(df['KR']==100,100,0))
+        df['rsiBuy'] = np.where(df['KR']==0,1,np.where(df['KR']==100,-1,0))
         return df
 
 class DerivedFactorData(DerivedFactorCalculate):

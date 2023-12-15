@@ -1,3 +1,4 @@
+# 建议更改为numpy数组计算等差网格而不是使用interval_size
 class InitGrid(object):
     """启动网格策略类，返回买入栈和卖出栈
     : params close : 传入目前收盘价作为参考建立网格

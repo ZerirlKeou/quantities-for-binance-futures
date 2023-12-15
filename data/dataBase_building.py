@@ -15,7 +15,7 @@ def json_to_str():
     return pair_index
 
 
-def write_to_database(pair, interval, start_val=1681956800000, end_val=int(time.time() * 1000)):
+def write_to_database(pair, interval, start_val=1590000000000, end_val=int(time.time() * 1000)):
     """
     创建1min级别合约数据库
     Args:
@@ -43,6 +43,7 @@ def write_to_database(pair, interval, start_val=1681956800000, end_val=int(time.
         except:
             pass
         df.to_sql(name=pair, con=conn, index=False, if_exists='append')
+        time.sleep(0.8)
     conn.close()
 
 

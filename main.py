@@ -2,15 +2,15 @@
 import os
 from binance.um_futures import UMFutures
 import pandas as pd
-from factor import calculate_indicators
-from GeneticPrograming import genetic_programing
-from TradeBackSystem import trade_back_system as tb
-from machine_learning import data_preparing
-from machine_learning import random_forest
-from machine_learning import SVM_nodel
-from machine_learning import lstm_model
-from machine_learning import arima
-from machine_learning import model_predict_write
+from factor.calculate_indicators import insert_data
+# from GeneticPrograming import genetic_programing
+# from TradeBackSystem import trade_back_system as tb
+# from machine_learning import data_preparing
+# from machine_learning import random_forest
+# from machine_learning import SVM_nodel
+# from machine_learning import lstm_model
+# from machine_learning import arima
+# from machine_learning import model_predict_write
 import time
 import csv
 import joblib
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # checker = MarketDataChecker(client)
     # checker.completion_history_data()
     # 计算指标
-    calculate_indicators.insert_data()
+    insert_data()
     # 回测系统
     # backtest_system = tb.TradeBackSystemV5(money=41.24, premium=0.02, lever=8)
     # backtest_system = tb.GridTradeMulti(money=41.24, premium=0.02, lever=8)

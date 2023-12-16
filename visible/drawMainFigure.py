@@ -76,9 +76,10 @@ class MplTypesDraw:
     def williams_plot(self, df_dat, ax):
         fplt.plot(df_dat['williams_r'], ax=ax, legend='williams')
 
-    @mpl.route_types(u"CCI")
+    @mpl.route_types(u"cci")
     def cci_plot(self, df_dat, ax):
         fplt.plot(df_dat['CCI'], ax=ax, legend='CCI')
+        fplt.plot(df_dat['ding'], ax=ax, legend='CCI_HHV')
 
     @mpl.route_types(u"zjfz")
     def zjfz_plot(self, df_dat, ax):

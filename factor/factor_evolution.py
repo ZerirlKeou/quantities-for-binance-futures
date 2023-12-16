@@ -38,7 +38,7 @@ def calculate_performance(df, conn, pair, indicator_col='macd_back', periods=Non
         total_win_percentage = total_wins / max((long_condition_len+short_condition_len),1) * 100
 
         long_total_return = df[long_condition][f'Return_{period}'].sum()
-        short_total_return = df[short_condition][f'Return_{period}'].sum()
+        short_total_return = -df[short_condition][f'Return_{period}'].sum()
         total_return = long_total_return + short_total_return
 
         results['pair'].append(pair)
@@ -78,7 +78,7 @@ def calculate_rate(interval, conn2, pair, name):
 
 def test():
     intervals = ['1m', '5m', '15m', '1h', '1d']
-    names = ['basic_Open_point', 'macd_back']
+    names = ['basic_Open_point', 'macd_back', 'cci_open_point']
     pairs = json_to_str()
     for interval in intervals:
         factor_data_path = os.path.join(parent_dir, "data\\factor_base\\{}.db".format(interval))
@@ -92,7 +92,6 @@ def test():
                 pass
             for pair in pairs:
                 calculate_rate(interval=interval, conn2=conn,pair=pair, name=name)
-
-            conn.close()
+        conn.close()
 
 

@@ -78,6 +78,6 @@ def insert_data():
     # chart.show_chart()
     # 主图绘制
     layout_dict = {'df': df,
-                   'draw_kind': ['kline','macd','basic_Open_point', 'stoch_rsi'],
+                   'draw_kind': ['kline','macd','basic_Open_point', 'cci'],
                    'title': u"BTCUSDT"}
     app.fig_output(**layout_dict)

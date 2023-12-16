@@ -56,7 +56,11 @@ class DerivedFactorCalculate:
                                           np.where((df['macd_back'] == -1) & (df['williams_points'] == -1), -1, 0))
         return df
 
-    @dfp.route_types(u'')
+    @dfp.route_types(u'cci_open_point')
+    def cci_open_point(self, df):
+        df['ding'] = df['CCI'].rolling(window=3).max()
+        df['cci_open_point'] = np.where((df['ding']==df['CCI']) & (df['CCI']<0),1,np.where((df['ding'].shift(1)==df['CCI'].shift(1)) & (df['ding']!=df['CCI']),-1,0))
+
     @dfp.route_types(u'other')
     def williams_point(self, df):
         df['williams_1'] = (-df['williams_r'].shift(1) - 80) / (-df['williams_r'] - 80)
@@ -64,9 +68,6 @@ class DerivedFactorCalculate:
         df['high-open'] = df['High'] - df['Open'] / df["Close"]
         """2023.07.16目前为止最好的一个指标"""
         df['open-close'] = (df['Open'] - df['Close']) / df["Close"]
-        df['CCI_HHV'] = np.where(df["CCI"] >= 0, df['CCI'].rolling(3).max() - df['CCI'],
-                                 -df['CCI'].rolling(3).max() + df['CCI'])
-        df["chazhi"] = df["CCI_HHV"].shift(1) - df["CCI_HHV"]
         df["high+dif"] = df["High"] + df["dif"]
         df['rsiBuy'] = np.where(df['KR']==0,1,np.where(df['KR']==100,-1,0))
         return df
@@ -75,7 +76,7 @@ class DerivedFactorData(DerivedFactorCalculate):
     def __init__(self):
         DerivedFactorCalculate.__init__(self)
         self.df = None
-        self.pool = ['macd_back', 'williams', 'basic_open_point', 'other']
+        self.pool = ['macd_back', 'williams', 'basic_open_point', 'cci_open_point', 'other']
 
     def calculate_factors(self, df):
         self.df = df

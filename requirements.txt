@@ -16,3 +16,6 @@ python-dateutil~=2.8.2
 finplot~=1.9.3
 tensorflow~=2.9.1
 tensorflow-gpu~=2.10.1
+torch~=2.1.2+cu121
+websockets~=11.0.3
+PyQt5~=5.15.10

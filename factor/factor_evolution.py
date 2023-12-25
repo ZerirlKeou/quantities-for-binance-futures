@@ -78,7 +78,9 @@ def calculate_rate(interval, conn2, pair, name):
 
 def test():
     intervals = ['1m', '5m', '15m', '1h', '1d']
-    names = ['basic_Open_point', 'macd_back', 'cci_open_point']
+    # 上次训练，如有更改则再次添加
+    names = ['basic_Open_point', 'macd_back', 'cci_open_point', 'rsiBuy', 'basic_open_plus']
+    # names = []
     pairs = json_to_str()
     for interval in intervals:
         factor_data_path = os.path.join(parent_dir, "data\\factor_base\\{}.db".format(interval))

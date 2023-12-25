@@ -5,7 +5,7 @@ import pandas as pd
 from factor.calculate_indicators import insert_data
 # from GeneticPrograming import genetic_programing
 # from TradeBackSystem import trade_back_system as tb
-# from machine_learning import data_preparing
+from machine_learning.data_preparing import Connection
 # from machine_learning import random_forest
 # from machine_learning import SVM_nodel
 # from machine_learning import lstm_model
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # 机器学习模块
     # 清洗连接数据
     # StartTime = time.time()
-    # test = data_preparing.Connection("15m", "5m")
+    # test = Connection("15m", "5m")
     # test = data_preparing.SingleInterval("5m", 3)
     # test.new_data()
     # EndTime = time.time()

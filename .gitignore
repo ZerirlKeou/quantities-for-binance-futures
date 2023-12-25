@@ -1431,3 +1431,8 @@ __pycache__
 /data/data_base/1d/ZENUSDT.db
 /data/data_base/1d/ZILUSDT.db
 /data/data_base/1d/ZRXUSDT.db
+/data/factor_base/1d.db
+/data/factor_base/1h.db
+/data/factor_base/1m.db
+/data/factor_base/5m.db
+/data/factor_base/15m.db

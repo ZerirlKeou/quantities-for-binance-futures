@@ -59,7 +59,7 @@ class DerivedFactorCalculate:
     @dfp.route_types(u'cci_open_point')
     def cci_open_point(self, df):
         df['ding'] = df['CCI'].rolling(window=3).max()
-        df['cci_open_point'] = np.where((df['ding']==df['CCI']) & (df['CCI']<0),1,np.where((df['ding'].shift(1)==df['CCI'].shift(1)) & (df['ding']!=df['CCI']),-1,0))
+        df['cci_open_point'] = np.where((df['ding']==df['CCI']) & (df['CCI']<0),1,np.where((df['ding'].shift(1)==df['CCI'].shift(1)) & (df['ding']!=df['CCI']) & (df['CCI']>0),-1,0))
 
     @dfp.route_types(u'other')
     def williams_point(self, df):
@@ -70,6 +70,7 @@ class DerivedFactorCalculate:
         df['open-close'] = (df['Open'] - df['Close']) / df["Close"]
         df["high+dif"] = df["High"] + df["dif"]
         df['rsiBuy'] = np.where(df['KR']==0,1,np.where(df['KR']==100,-1,0))
+        df['basic_open_plus'] = np.where((df['KR']==0) & (df['basic_Open_point'] == 1),1,np.where((df['KR']==100) & (df['basic_Open_point']==-1),-1,0))
         return df
 
 class DerivedFactorData(DerivedFactorCalculate):

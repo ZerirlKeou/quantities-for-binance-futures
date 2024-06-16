@@ -7,26 +7,70 @@ import os
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+# os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+# cnn模型
+class CNNBitcoinPredictor(nn.Module):
+    def __init__(self):
+        super(CNNBitcoinPredictor, self).__init__()
+        # 1D convolutional layers
+        # Assuming each input data is 1-dimensional with 10 numbers
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding=1)  # Adjust in_channels to 1
+        self.conv2 = nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+
+        # Pooling layer
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
+
+        # Fully connected layers
+        # The input features of the first fully connected layer need to be adjusted
+        # based on the output of the last pooling layer, which depends on the length of your sequence
+        self.fc1 = nn.Linear(32 * 4, 128)  # Adjust based on the output dimension
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        # Apply conv follow by ReLU, then pooling
+        x = self.pool(F.relu(self.conv1(x)))  # Convolution layer 1
+        x = self.pool(F.relu(self.conv2(x)))  # Convolution layer 2
+
+        # Flatten the sequence data for the fully connected layer
+        x = x.view(x.size(0), -1)  # Flatten all dimensions except batch
+
+        # Fully connected layers with ReLU activation function
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+
+        return x
 
 # 定义模型
 class BitcoinPredictor(nn.Module):
     def __init__(self):
         super(BitcoinPredictor, self).__init__()
-        self.fc1 = nn.Linear(8, 128)  # 8 个输入特征
-        self.bn1 = nn.BatchNorm1d(128)
-        self.fc2 = nn.Linear(128, 64)
-        self.bn2 = nn.BatchNorm1d(64)
-        self.fc3 = nn.Linear(64, 3)   # 3 个分类（上涨、下跌、不变）
+        self.fc1 = nn.Linear(10, 64)  # 8 个输入特征
+        self.bn1 = nn.BatchNorm1d(64)
+        self.fc2 = nn.Linear(64, 256)
+        self.bn2 = nn.BatchNorm1d(256)
+        self.fc3 = nn.Linear(256, 512)
+        self.bn3 = nn.BatchNorm1d(512)
+        self.fc4 = nn.Linear(512,1024)
+        self.bn4 = nn.BatchNorm1d(1024)
+        self.fc5 = nn.Linear(1024,512)
+        self.bn5 = nn.BatchNorm1d(512)
+        self.fc6 = nn.Linear(512, 128)
+        self.bn6 = nn.BatchNorm1d(128)
+        self.fc7 = nn.Linear(128,3)# 3 个分类（上涨、下跌、不变）
 
     def forward(self, x):
         x = F.relu(self.bn1(self.fc1(x)))
         x = F.relu(self.bn2(self.fc2(x)))
-        x = self.fc3(x)
+        x = F.relu(self.bn3(self.fc3(x)))
+        x = F.relu(self.bn4(self.fc4(x)))
+        x = F.relu(self.bn5(self.fc5(x)))
+        x = F.relu(self.bn6(self.fc6(x)))
+        x = self.fc7(x)
         return x
 
 # 创建模型实例
-model = BitcoinPredictor()
+# model = BitcoinPredictor()
+model = CNNBitcoinPredictor()
 
 # 检查 GPU 是否可用
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +94,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 losses = []
 
 # 训练模型
-for epoch in range(500):  # 进行 1000 个训练周期
+for epoch in range(50):  # 进行 1000 个训练周期
     for inputs, labels in train_loader:
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()

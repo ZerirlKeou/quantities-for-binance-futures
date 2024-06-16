@@ -24,7 +24,7 @@ class DataNormalizer:
 
     def normalize(self):
         conn = sqlite3.connect(self.db_path)
-        df = pd.read_sql_query("SELECT Open, High, Close, Low, macd, dif, dea, Volume, Return_1 FROM 'BTCUSDT';", conn,
+        df = pd.read_sql_query("SELECT Open, High, Close, Low, williams_r, CCI, macd, dif, dea, Volume, Return_1 FROM 'BTCUSDT';", conn,
                                dtype='float')
         scaler = MinMaxScaler()
         df_scaled = scaler.fit_transform(df.drop('Return_1', axis=1))
@@ -38,6 +38,7 @@ class DataNormalizer:
         print(lower_third)
         print(upper_third)
         df_scaled['Label'] = df_scaled['Return_1'].apply(lambda x: 2 if x > upper_third else (1 if x < lower_third else 0))
+        df_scaled = df_scaled.dropna()
         return df_scaled
 
 

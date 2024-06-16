@@ -21,7 +21,7 @@ def calculate_performance(df, conn, pair, indicator_col='macd_back', periods=Non
         periods = [1, 2, 3, 4, 5]
     results = {'pair':[], 'Period': [], 'Long Wins': [], 'Short Wins': [], 'Total Wins': [],
                'Long Win Percentage': [], 'Short Win Percentage': [], 'Total Win Percentage': [],
-               'Long Total Return': [], 'Short Total Return': [], 'Total Return': []}
+               'Long Total Return': [], 'Short Total Return': [], 'Total Return': [], 'Long Expect':[],'Short Expect':[]}
 
     for period in periods:
         long_condition = df[indicator_col] > 0
@@ -36,10 +36,14 @@ def calculate_performance(df, conn, pair, indicator_col='macd_back', periods=Non
         long_win_percentage = long_wins / max(long_condition_len, 1) * 100
         short_win_percentage = short_wins / max(short_condition_len, 1) * 100
         total_win_percentage = total_wins / max((long_condition_len+short_condition_len),1) * 100
-
         long_total_return = df[long_condition][f'Return_{period}'].sum()
+        long_total_return_sum = long_total_return[long_total_return > 0].sum()
         short_total_return = -df[short_condition][f'Return_{period}'].sum()
-        total_return = long_total_return + short_total_return
+        short_total_return_sum = short_total_return[short_total_return > 0].sum()
+        total_return = long_total_return_sum + short_total_return_sum
+
+        long_expect = long_total_return_sum/long_wins
+        short_expect = short_total_return_sum/short_wins
 
         results['pair'].append(pair)
         results['Period'].append(period)
@@ -49,12 +53,13 @@ def calculate_performance(df, conn, pair, indicator_col='macd_back', periods=Non
         results['Long Win Percentage'].append(long_win_percentage)
         results['Short Win Percentage'].append(short_win_percentage)
         results['Total Win Percentage'].append(total_win_percentage)
-        results['Long Total Return'].append(long_total_return)
-        results['Short Total Return'].append(short_total_return)
+        results['Long Total Return'].append(long_total_return_sum)
+        results['Short Total Return'].append(short_total_return_sum)
         results['Total Return'].append(total_return)
+        results['Long Expect'].append(long_expect)
+        results['Short Expect'].append(short_expect)
 
     results_df = pd.DataFrame(results)
-
     results_df.to_sql(indicator_col, conn, index=False, if_exists='append')
 
 def calculate_rate(interval, conn2, pair, name):
@@ -71,7 +76,7 @@ def calculate_rate(interval, conn2, pair, name):
     conn = sqlite3.connect(data_folder_path)
     try:
         df = pd.read_sql_query("select * from {};".format(pair), conn, dtype='float')
-        calculate_performance(df,conn2,pair,indicator_col=name)
+        calculate_performance(df, conn2, pair, indicator_col=name)
     except:
         print(u'{} database has not create, and it will be created soon'.format(pair))
 
@@ -80,7 +85,6 @@ def test():
     intervals = ['1m', '5m', '15m', '1h', '1d']
     # 上次训练，如有更改则再次添加
     names = ['basic_Open_point', 'macd_back', 'cci_open_point', 'rsiBuy', 'basic_open_plus']
-    # names = []
     pairs = json_to_str()
     for interval in intervals:
         factor_data_path = os.path.join(parent_dir, "data\\factor_base\\{}.db".format(interval))

@@ -36,6 +36,9 @@ class DerivedFactorCalculate:
             np.where(~df['deaRewrite'] & ~df['difRewrite'] & (
                     ~df['macd_condition'] & ~df['shifted_condition1'] & ~df['shifted_condition2']),
                      1, 0))
+
+        df['macd_sell'] = np.where((df['macd_condition'] & df['shifted_condition1'] & df['shifted_condition2']),-1,np.where((~df['macd_condition'] & ~df['shifted_condition1'] & ~df['shifted_condition2']),1, 0))
+
         df.drop(['macd_condition', 'shifted_condition1', 'shifted_condition2','deaRewrite','difRewrite'], axis=1, inplace=True)
         return df
 
@@ -60,6 +63,30 @@ class DerivedFactorCalculate:
     def cci_open_point(self, df):
         df['ding'] = df['CCI'].rolling(window=3).max()
         df['cci_open_point'] = np.where((df['ding']==df['CCI']) & (df['CCI']<0),1,np.where((df['ding'].shift(1)==df['CCI'].shift(1)) & (df['ding']!=df['CCI']) & (df['CCI']>0),-1,0))
+    @dfp.route_types(u'golden')
+    def golden_point(self,df):
+        # 历史新低
+        df['historical_low'] = df['Low'].rolling(window=144).min()
+        # 历史新高
+        df['historical_high'] = df['High'].rolling(window=144).max()
+        # 多空线
+        df['bull_line'] = ((df['Close'] - df['historical_low'].rolling(window=2).min()) /
+                           (df['historical_high'].rolling(window=2).max() - df['historical_low'].rolling(
+                               window=2).min()) * 100).rolling(window=1).mean()
+        df['bear_line'] = ((df['historical_high'].rolling(window=1).max() - df['Close']) /
+                           (df['historical_high'].rolling(window=1).max() - df['historical_low'].rolling(
+                               window=1).min()) * 100).rolling(window=1).mean()
+        # BUYPILL条件
+        df['buypill'] = np.where((df['historical_low'].shift(1) == df['historical_low']) &
+                                 (df['bull_line'].shift(1) < df['bear_line'].shift(1)) &
+                                 (df['bull_line'] > df['bear_line']), 1, 0)
+        # SELLPILL条件
+        df['sellpill'] = np.where((df['historical_high'].shift(1) == df['historical_high']) &
+                                  (df['bull_line'].shift(1) > df['bear_line'].shift(1)) &
+                                  (df['bull_line'] < df['bear_line']), -1, 0)
+        df.drop(['historical_low', 'historical_high', 'bull_line', 'bear_line'], axis=1,
+                inplace=True)
+        return df
 
     @dfp.route_types(u'other')
     def williams_point(self, df):
@@ -77,7 +104,7 @@ class DerivedFactorData(DerivedFactorCalculate):
     def __init__(self):
         DerivedFactorCalculate.__init__(self)
         self.df = None
-        self.pool = ['macd_back', 'williams', 'basic_open_point', 'cci_open_point', 'other']
+        self.pool = ['macd_back', 'williams', 'basic_open_point', 'cci_open_point', 'golden', 'other']
 
     def calculate_factors(self, df):
         self.df = df

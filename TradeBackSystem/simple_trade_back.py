@@ -1,5 +1,7 @@
 import pandas as pd
 from visible import drawScatter as dk
+import os
+import sqlite3
 
 
 class TradeBackSystem:
@@ -118,3 +120,12 @@ class TradeBackSystemV5(TradeBackSystem):
             draw_number=200
         )
         chart.show_chart()
+
+def test():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    data_folder = "data\\data_base\\ETHUSDT.db"
+    data_folder_path = os.path.join(parent_dir, data_folder)
+    conn = sqlite3.connect(data_folder_path)
+
+    df = pd.read_sql_query("select * from 'ETHUSDT';", conn, dtype='float',index_col='Open time')

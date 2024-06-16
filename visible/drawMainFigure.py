@@ -68,6 +68,7 @@ class MplTypesDraw:
     def macd_plot(self, df_dat, ax):
         df_dat['macd_1'] = df_dat['macd'].shift(1)
         df_dat['macd_copy'] = df_dat['macd']
+        # print(df_dat[['macd_copy', 'macd_1', 'macd']])
         fplt.volume_ocv(df_dat[['macd_copy', 'macd_1', 'macd']], ax=ax, colorfunc=fplt.strength_colorfilter)
         fplt.plot(df_dat['dif'], ax=ax, legend='dif')
         fplt.plot(df_dat['dea'], ax=ax, legend='dea')
@@ -88,6 +89,19 @@ class MplTypesDraw:
     @mpl.route_types(u"basic_Open_point")
     def basic_open_point(self, df_dat, ax):
         fplt.plot(df_dat['basic_Open_point'], ax=ax, legend='Basic Open Point')
+
+    @mpl.route_types(u"macd_back")
+    def macd_back(self, df_dat, ax):
+        fplt.plot(df_dat['macd_back'], ax=ax, legend='MACD Back')
+
+    @mpl.route_types(u"macd_sell")
+    def macd_sell(self, df_dat, ax):
+        fplt.plot(df_dat['macd_sell'], ax=ax, legend='MACD Sell')
+
+    @mpl.route_types(u"golden")
+    def golden_point(self, df_dat, ax):
+        fplt.plot(df_dat['buypill'], ax=ax, legend='buypill')
+        fplt.plot(df_dat['sellpill'], ax=ax, legend='sellpill')
 
     @mpl.route_types(u"stoch_rsi")
     def stoch_rsi_plot(self, df_dat, ax):
@@ -113,6 +127,9 @@ class MplTypesDraw:
                     # fplt.plot(df_dat['Close'][start:end],ax=ax,color='g')
                 else:
                     fplt.plot(df_dat['Close'][start:end],ax=ax,color='r')
+    @mpl.route_types(u"money")
+    def money_trade_back(self,df_dat, ax):
+        fplt.plot(df_dat['money'], ax=ax, legend='Money')
 
 class MplVisualIf(MplTypesDraw):
 

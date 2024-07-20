@@ -1,5 +1,8 @@
+import sys
+
 from factor import basic_factors
 from factor import derived_factors
+from factor import time_series_factor
 from visible import drawMainFigure
 from visible import drawScatter as ds
 import pandas as pd
@@ -8,6 +11,8 @@ from memory_profiler import profile
 import json
 import sqlite3
 import numpy as np
+import os
+import site
 
 app = drawMainFigure.MplVisualIf()
 
@@ -43,6 +48,11 @@ def factor_calculate(df):
     df = dbf.calculate_factors(df)
     return df
 
+def factor_time_series(df):
+    tsf = time_series_factor.TimeSeriesFactorData()
+    df = tsf.calculate_factors(df)
+    return df
+
 
 def get_df(interval,pair):
     name = 'data\\data_base\\{}\\{}.db'.format(interval,pair)
@@ -52,20 +62,29 @@ def get_df(interval,pair):
     except:
         print(u'{} database has not create'.format(pair))
         return None
+
     df = df.drop_duplicates(subset='Open time')
-    df = factor_calculate(df)
+    print('开始计算', pair, '基础指标及其衍生指标')
+    # df = factor_calculate(df)
+
+    print('开始计算', pair, '时间序列指标')
+    df = factor_time_series(df)
+
     df.to_sql(name=pair, con=conn, index=False, if_exists='replace')
     conn.close()
-    print(pair)
 
 
 @profile()
 def insert_data():
-    intervals = ['1m','5m','15m','1h','1d']
-    pair_index = json_to_str()
-    for interval in intervals:
-        for pair in pair_index.values():
-            get_df(interval, pair)
+    # intervals = ['1m','5m','15m','1h','1d']
+    # pair_index = json_to_str()
+    # for interval in intervals:
+    #     for pair in pair_index.values():
+    #         get_df(interval, pair)
+
+    get_df('1m','BTCUSDT')
+
+    '''
 
     name = 'data\\data_base\\1m\\BTCUSDT.db'
     conn = sqlite3.connect(name)
@@ -83,3 +102,10 @@ def insert_data():
                    'draw_kind': ['kline','macd','macd_back', 'stoch_rsi'],
                    'title': u"BTCUSDT"}
     app.fig_output(**layout_dict)
+    '''
+
+def test_calculate_indicator():
+    # TODO 在爬取行情信息后使用本测试函数，减少从main函数中进行索引所浪费的时间，此方式运行较为简单
+    # 更改工作目录到父目录
+    os.chdir(os.pardir)
+    insert_data()

@@ -30,7 +30,7 @@ def write_to_database(pair, interval, start_val=1590000000000, end_val=int(time.
     try:
         sql_df = pd.read_sql_query("select * from {};".format(pair), conn)
         start_val = int(sql_df["Open time"].values[-1]+1)
-        print(u"Updating the {} database with the interval{}, starting at time {}".format(pair, interval, start_val))
+        print(u"Updating the {} database with the interval {}, starting at time {}".format(pair, interval, start_val))
     except:
         print(u"Creating the {} database".format(pair))
 

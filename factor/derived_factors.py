@@ -100,6 +100,16 @@ class DerivedFactorCalculate:
         df['basic_open_plus'] = np.where((df['KR']==0) & (df['basic_Open_point'] == 1),1,np.where((df['KR']==100) & (df['basic_Open_point']==-1),-1,0))
         return df
 
+    @dfp.route_types(u'macd_time_series')
+    def macd_time_series(self, df):
+        short_period, long_period, signal_period = 12, 26, 9
+        short_ema = df['Close'].ewm(span=short_period, adjust=False).mean()
+        long_ema = df['Close'].ewm(span=long_period, adjust=False).mean()
+        df['dif_high_level'] = short_ema - long_ema
+        df['dea_high_level'] = df['dif'].ewm(span=signal_period, adjust=False).mean()
+        df['macd_high_level'] = (df['dif'] - df['dea']) * 2
+
+
 class DerivedFactorData(DerivedFactorCalculate):
     def __init__(self):
         DerivedFactorCalculate.__init__(self)

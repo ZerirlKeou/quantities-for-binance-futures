@@ -1,6 +1,5 @@
 import finplot as fplt
 import pandas as pd
-import numpy as np
 
 
 
@@ -98,6 +97,14 @@ class MplTypesDraw:
     def macd_sell(self, df_dat, ax):
         fplt.plot(df_dat['macd_sell'], ax=ax, legend='MACD Sell')
 
+    @mpl.route_types(u'macd_sell_time_series')
+    def macd_sell_time_series(self, df_dat, ax):
+        fplt.plot(df_dat['macd_sell_time_series'], ax=ax, legend='MACD Sell Time Series')
+
+    @mpl.route_types(u'macd_back_time_series')
+    def macd_sell_time_series(self, df_dat, ax):
+        fplt.plot(df_dat['macd_back_time_series'], ax=ax, legend='MACD Back Time Series')
+
     @mpl.route_types(u"golden")
     def golden_point(self, df_dat, ax):
         fplt.plot(df_dat['buypill'], ax=ax, legend='buypill')
@@ -127,9 +134,14 @@ class MplTypesDraw:
                     # fplt.plot(df_dat['Close'][start:end],ax=ax,color='g')
                 else:
                     fplt.plot(df_dat['Close'][start:end],ax=ax,color='r')
+
     @mpl.route_types(u"money")
     def money_trade_back(self,df_dat, ax):
         fplt.plot(df_dat['money'], ax=ax, legend='Money')
+
+    @mpl.route_types(u"position")
+    def position_trade_back(self, df_dat, ax):
+        fplt.plot(df_dat['position'], ax=ax, legend='Position')
 
 class MplVisualIf(MplTypesDraw):
 

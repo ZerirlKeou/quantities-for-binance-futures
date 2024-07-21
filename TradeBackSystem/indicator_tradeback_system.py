@@ -42,7 +42,7 @@ class IndicatorTradeBackSystem:
         self.position = position
         self.df = _read_clean_data(df, step)
         self.fee_multiplier = self.premium * 0.01 * self.lever
-        self.plot_profit(indicator_name="macd_back", stop_loss_percentage=stop_loss_percentage)
+        self.plot_profit(indicator_name="macd_back_time_series", stop_loss_percentage=stop_loss_percentage)
 
     def open_position(self, df, i, profit_column_index):
         df.iloc[i, profit_column_index] = -self.money * self.fee_multiplier
@@ -55,7 +55,7 @@ class IndicatorTradeBackSystem:
         df.iloc[i, profit_column_index] = -self.money[times] * self.fee_multiplier
         self.open_money[times] = self.money[times]
         self.money += df.iloc[i]['Profit']
-        return times
+        return times, df
 
     def plot_profit(self, indicator_name="basic_Open_point", stop_loss_percentage=0.1):
         """
@@ -75,13 +75,14 @@ class IndicatorTradeBackSystem:
         # df = self.make_single_position_for_double_indicator(df, profit_column_index, money_column_index, indicator_name,
         #                                                     indicator_two='macd_sell',
         #                                                     stop_loss_percentage=stop_loss_percentage, position='long')
-        df = self.make_grid_positions(df, profit_column_index, money_column_index, indicator_name, stop_loss_percentage, times=30)
+        # df['macd_sell_time_series'] = -df['macd_sell_time_series']
+        df = self.make_grid_positions(df, profit_column_index, money_column_index, indicator_name, stop_loss_percentage, times=3)
 
         # 可视化
         df['Open time'] = (df.index.astype(np.int64) // 10 ** 3).astype(int)
 
         layout_dict = {'df': df,
-                       'draw_kind': ['kline', 'macd_sell', 'basic_Open_point', 'money'],
+                       'draw_kind': ['kline', 'macd', 'macd_back_time_series', 'money'],
                        'title': f"{indicator_name}指标策略回测"}
         app.fig_output(**layout_dict)
 
@@ -220,6 +221,8 @@ class IndicatorTradeBackSystem:
 
     def make_grid_positions(self, df, profit_column_index, money_column_index, indicator_name, stop_loss_percentage,
                             times=30):
+        df['position'] = times
+        position_column_index = df.columns.get_loc('position')
         situation = "none"
         origin_times = times
         one_pit = self.money/times
@@ -232,10 +235,10 @@ class IndicatorTradeBackSystem:
                 # 开仓
                 if df.iloc[i][indicator_name] == 1:
                     situation = "more"
-                    times = self._open_position(df, i, profit_column_index, times)
+                    times, df = self._open_position(df, i, profit_column_index, times)
                 elif df.iloc[i][indicator_name] == -1:
                     situation = 'less'
-                    times = self._open_position(df, i, profit_column_index, times)
+                    times, df = self._open_position(df, i, profit_column_index, times)
             else:
                 if situation == 'more':
                     for j in range(origin_times - times):
@@ -250,6 +253,9 @@ class IndicatorTradeBackSystem:
                         times += 1
                         if times == origin_times:
                             situation = "none"
+                    # if df.iloc[i][indicator_name] == 1:
+                    #     times -= 1
+                    #     df.iloc[i, profit_column_index] += -self.money[times] * self.fee_multiplier
                     total_money += df.iloc[i]['Profit']
                 elif situation == 'less':
                     for j in range(origin_times - times):
@@ -264,20 +270,24 @@ class IndicatorTradeBackSystem:
                         times += 1
                         if times == origin_times:
                             situation = "none"
+                    # if df.iloc[i][indicator_name] == -1:
+                    #     times -= 1
+                    #     df.iloc[i, profit_column_index] += -self.money[times] * self.fee_multiplier
                     total_money += df.iloc[i]['Profit']
+            df.iloc[i, position_column_index] = times
             df.iloc[i, money_column_index] = total_money
         print('资金余额：', total_money)
-        df.to_csv("双向开仓回测结果.csv", index=None)
+        df.to_csv("老鼠仓回测结果.csv", index=None)
         return df
 
 
 def test():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
-    data_folder = "data\\data_base\\5m\\BNBUSDT.db"
+    data_folder = "data\\data_base\\5m\\BTCUSDT.db"
     data_folder_path = os.path.join(parent_dir, data_folder)
     conn = sqlite3.connect(data_folder_path)
 
-    df = pd.read_sql_query("select * from 'BNBUSDT';", conn, dtype='float', index_col='Open time')
-    IndicatorTradeBackSystem(df, money=50, premium=0.018, lever=6, position='long', step=200000,
+    df = pd.read_sql_query("select * from 'BTCUSDT';", conn, dtype='float', index_col='Open time')
+    IndicatorTradeBackSystem(df, money=50, premium=0.018, lever=6, position='long', step=800000,
                              stop_loss_percentage=0.072)

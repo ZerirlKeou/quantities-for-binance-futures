@@ -65,7 +65,7 @@ def get_df(interval,pair):
 
     df = df.drop_duplicates(subset='Open time')
     print('开始计算', pair, '基础指标及其衍生指标')
-    # df = factor_calculate(df)
+    df = factor_calculate(df)
 
     print('开始计算', pair, '时间序列指标')
     df = factor_time_series(df)
@@ -82,14 +82,14 @@ def insert_data():
     #     for pair in pair_index.values():
     #         get_df(interval, pair)
 
-    get_df('1m','BTCUSDT')
+    # get_df('1m','BTCUSDT')
 
-    '''
+
 
     name = 'data\\data_base\\1m\\BTCUSDT.db'
     conn = sqlite3.connect(name)
     # df = pd.read_sql_query("select * from 'BTCUSDT';", conn, dtype='float',index_col='Open time')
-    df = pd.read_sql_query("SELECT * FROM 'BTCUSDT' ORDER BY 'Open time' DESC LIMIT 2000000,5000;", conn, dtype='float',
+    df = pd.read_sql_query("SELECT * FROM 'BTCUSDT' ORDER BY 'Open time' DESC;", conn, dtype='float',
                            index_col='Open time')
 
     df['Open time'] = (df.index.astype(np.int64) // 10 ** 3).astype(int)
@@ -99,10 +99,10 @@ def insert_data():
     # chart.show_chart()
     # 主图绘制
     layout_dict = {'df': df,
-                   'draw_kind': ['kline','macd','macd_back', 'stoch_rsi'],
+                   'draw_kind': ['kline','macd','macd_back', 'macd_back_time_series'],
                    'title': u"BTCUSDT"}
     app.fig_output(**layout_dict)
-    '''
+
 
 def test_calculate_indicator():
     # TODO 在爬取行情信息后使用本测试函数，减少从main函数中进行索引所浪费的时间，此方式运行较为简单
